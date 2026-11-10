@@ -862,3 +862,6 @@ select {
 .large .device .badge {
   font-size: 12px;
 }
+
+/* Account screens deliberately use the same accessible, local-only app shell. */
+.account-page{padding-top:30px}.account-logo{width:57px;height:57px;margin-bottom:24px;background:var(--green);color:#fff}.account-logo .icon{width:31px;height:31px}.account-tabs{display:flex;border-bottom:1px solid var(--border);margin:24px 0;gap:20px}.account-tabs button{min-height:44px;padding:10px 16px;color:var(--muted);border-bottom:3px solid transparent}.account-tabs [aria-pressed=true]{color:var(--green);font-weight:700;border-color:var(--green)}.form-field{display:flex;flex-direction:column;gap:9px;margin-bottom:18px;font-size:12px;font-weight:600}.form-field input{min-height:49px;width:100%;border:1px solid var(--border);border-radius:11px;background:#fff;padding:12px;color:#202b35}.password-field{position:relative}.password-field input{padding-right:65px}.password-field button{position:absolute;right:4px;top:3px;min-width:55px;min-height:44px;font-size:11px;color:var(--green)}.form-error{font-size:12px;color:#9a2720}.simulation-caption{font-size:10px;color:var(--muted);text-align:center;margin:9px 0}.large .form-field,.large .form-field input{font-size:16px}

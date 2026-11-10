@@ -36,3 +36,9 @@ All eight main screens are connected by persistent bottom navigation and context
 The priority on classroom search, indoor wayfinding and accessible route review follows the supplied 50-response survey. No additional research statistics have been introduced. The prototype uses a neutral and green palette, labelled line icons, large controls, visible keyboard focus, text alongside route indicators, an optional high-contrast theme and larger text. Travel mode radio controls support arrow keys. This is not a claim of audited WCAG conformance.
 
 **Every room placement, floor plan, route, distance, journey time, parking location and access feature is illustrative and unverified.** The map is schematic and is not a geographic representation of UCD. No live positioning, real-time availability or suitability guarantee is provided. Audio is a saved visual preference only. Essential written directions remain visible regardless of the expanded-summary preference.
+
+## Demo login and moving navigation maps
+
+The app opens on a login screen. Switch to Sign up to create a session-only demo profile, or choose Continue as guest. Forms validate email format, minimum password length and matching passwords. Any valid demonstration credentials can enter the prototype; there is no authentication service. Use made-up details. Passwords and email addresses are never persisted or sent. Profile provides login and logout controls. Reloading returns to the login screen while retaining existing local preferences and saved places.
+
+Next instruction and Previous move the illustrated position marker along the outdoor route. Indoor markers also change at every step, with floor transitions following the instructions. These are simulated movements driven by the buttons, not live tracking.

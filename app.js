@@ -141,7 +141,8 @@ const read = (key, fallback) => {
 };
 const storedSettings = read("navigate-settings", {});
 const state = {
-  screen: "home",
+  screen: "login",
+  demoUser: null,
   history: [],
   destination: "a105",
   mode: "walking",
@@ -237,7 +238,12 @@ function campusMap(route = false) {
         ? `163 ${ty} ${tx - 15} ${ty}`
         : `163 ${ty}`;
   const routePath = `M88 190 89 143 163 140 ${waypoint} ${tx} ${ty}`;
-  return `<svg class="map" viewBox="0 0 350 285" role="img" aria-label="Illustrative campus map${route ? ", with " + modes[state.mode].name + " route" : ""}"><rect width="350" height="285" fill="#e9efdf"/><path d="M-10 65Q100 25 155 72T370 60 M-10 230Q80 175 170 220T370 190 M78-10 90 300 M264-10 248 300" fill="none" stroke="#fff" stroke-width="15"/><path d="M0 145 350 133 M160 0 164 285" stroke="#f9faf5" stroke-width="7"/><path d="M-10 65Q100 25 155 72T370 60 M78-10 90 300 M264-10 248 300" fill="none" stroke="#d5dfcb" stroke-width="1"/><ellipse cx="206" cy="116" rx="29" ry="23" fill="#c1dce0"/><path d="m15 100 45-3 3 32-45 4Z M108 95h39v31h-39Z M184 24h52v30h-52Z M277 95h49v47h-49Z M110 167h40v27h-40Z M185 160h53v40h-53Z M276 224h52v30h-52Z M20 251h40v28H20Z" fill="#d0dbc7" stroke="#b5c4ab"/><path d="M112 224h48v41h-48Z" fill="#c1d1bc" stroke="#9daf98"/><g fill="#52654f" font-family="Arial,sans-serif" font-size="9"><text x="177" y="17">Science Centre</text><text x="17" y="91">Student Centre</text><text x="182" y="214">James Joyce Library</text><text x="103" y="278">Newman Building</text><text x="192" y="119" font-size="8">The lake</text><text x="277" y="159">Belfield</text></g><g fill="#abc49e"><circle cx="29" cy="179" r="15"/><circle cx="48" cy="188" r="12"/><circle cx="301" cy="30" r="17"/><circle cx="325" cy="43" r="11"/><circle cx="215" cy="253" r="13"/></g>${route ? `<path d="${routePath}" stroke="white" stroke-width="10" fill="none"/><path d="${routePath}" stroke="${state.mode === "cycling" ? "#314f87" : "#246B55"}" stroke-width="5" fill="none" ${state.mode === "stepfree" ? 'stroke-dasharray="7 5"' : ""}/><circle cx="${tx}" cy="${ty}" r="10" fill="#123D35"/><text x="${tx}" y="${ty + 4}" text-anchor="middle" fill="white" font-size="12">✓</text><rect x="231" y="72" width="22" height="19" rx="5" fill="white"/><text x="235" y="85" font-size="12" fill="#123D35">P</text>${state.mode === "stepfree" ? `<rect x="${tx - 30}" y="${ty - 10}" width="19" height="19" rx="4" fill="#fff"/><text x="${tx - 27}" y="${ty + 4}" font-size="13">♿</text>` : ""}` : ""}<circle cx="88" cy="190" r="17" fill="#246B55" opacity=".12"/><circle cx="88" cy="190" r="7" fill="#246B55" stroke="white" stroke-width="3"/><rect x="43" y="207" width="90" height="20" rx="7" fill="white"/><text x="50" y="220" font-size="9" fill="#123D35">You · demo location</text></svg>`;
+  const points = routePath.match(/-?\d+(?:\.\d+)?/g).map(Number);
+  const vertices = [];
+  for (let i = 0; i < points.length; i += 2) vertices.push([points[i], points[i + 1]]);
+  const progress = state.screen === "outdoor" ? state.outdoor / (routeInstructions().length - 1) : 0;
+  const position = pointAlong(vertices, progress);
+  return `<svg class="map" viewBox="0 0 350 285" role="img" aria-label="Illustrative campus map${route ? ", with " + modes[state.mode].name + " route" : ""}"><rect width="350" height="285" fill="#e9efdf"/><path d="M-10 65Q100 25 155 72T370 60 M-10 230Q80 175 170 220T370 190 M78-10 90 300 M264-10 248 300" fill="none" stroke="#fff" stroke-width="15"/><path d="M0 145 350 133 M160 0 164 285" stroke="#f9faf5" stroke-width="7"/><path d="M-10 65Q100 25 155 72T370 60 M78-10 90 300 M264-10 248 300" fill="none" stroke="#d5dfcb" stroke-width="1"/><ellipse cx="206" cy="116" rx="29" ry="23" fill="#c1dce0"/><path d="m15 100 45-3 3 32-45 4Z M108 95h39v31h-39Z M184 24h52v30h-52Z M277 95h49v47h-49Z M110 167h40v27h-40Z M185 160h53v40h-53Z M276 224h52v30h-52Z M20 251h40v28H20Z" fill="#d0dbc7" stroke="#b5c4ab"/><path d="M112 224h48v41h-48Z" fill="#c1d1bc" stroke="#9daf98"/><g fill="#52654f" font-family="Arial,sans-serif" font-size="9"><text x="177" y="17">Science Centre</text><text x="17" y="91">Student Centre</text><text x="182" y="214">James Joyce Library</text><text x="103" y="278">Newman Building</text><text x="192" y="119" font-size="8">The lake</text><text x="277" y="159">Belfield</text></g><g fill="#abc49e"><circle cx="29" cy="179" r="15"/><circle cx="48" cy="188" r="12"/><circle cx="301" cy="30" r="17"/><circle cx="325" cy="43" r="11"/><circle cx="215" cy="253" r="13"/></g>${route ? `<path d="${routePath}" stroke="white" stroke-width="10" fill="none"/><path d="${routePath}" stroke="${state.mode === "cycling" ? "#314f87" : "#246B55"}" stroke-width="5" fill="none" ${state.mode === "stepfree" ? 'stroke-dasharray="7 5"' : ""}/><circle cx="${tx}" cy="${ty}" r="10" fill="#123D35"/><text x="${tx}" y="${ty + 4}" text-anchor="middle" fill="white" font-size="12">✓</text><rect x="231" y="72" width="22" height="19" rx="5" fill="white"/><text x="235" y="85" font-size="12" fill="#123D35">P</text>${state.mode === "stepfree" ? `<rect x="${tx - 30}" y="${ty - 10}" width="19" height="19" rx="4" fill="#fff"/><text x="${tx - 27}" y="${ty + 4}" font-size="13">♿</text>` : ""}` : ""}<g data-position="${position.join(',')}" transform="translate(${position[0]-88} ${position[1]-190})"><circle cx="88" cy="190" r="17" fill="#246B55" opacity=".12"/><circle cx="88" cy="190" r="7" fill="#246B55" stroke="white" stroke-width="3"/></g><rect x="10" y="260" width="140" height="20" rx="7" fill="white"/><text x="17" y="273" font-size="9" fill="#123D35">You · ${state.screen === "outdoor" ? "simulated step " + (state.outdoor+1) : "demo location"}</text></svg>`;
 }
 function home() {
   return `<div class="page"><div class="eyeline"><i></i> BELFIELD CAMPUS</div><h1>Where would you<br>like to go?</h1><p class="intro">Find classrooms, buildings and facilities across UCD.</p><button class="searchbox" data-action="search">${icon("search")}<span>Search classroom, building or location...</span></button><div class="section-heading"><h2>Recent destinations</h2><button class="text-button" data-action="search">View all</button></div>${places.slice(0, 4).map(row).join("")}<div class="section-heading"><h2>Your campus, at a glance</h2><span class="muted">Belfield</span></div><div class="map-card">${campusMap()}<span class="map-tag">CAMPUS PREVIEW</span><button class="map-link" data-action="explore">Explore campus map ${icon("arrow")}</button></div><div class="section-heading"><h2>A quicker way to find</h2></div><div class="shortcuts">${[
@@ -357,7 +363,21 @@ function indoorSteps() {
         "Your destination is " + dest().name + ".",
       ];
 }
+function pointAlong(vertices, progress) {
+  const lengths = vertices.slice(1).map((point, i) => Math.hypot(point[0]-vertices[i][0], point[1]-vertices[i][1]));
+  let remaining = lengths.reduce((sum, length) => sum + length, 0) * progress;
+  for (let i=0;i<lengths.length;i++) {
+    if (remaining <= lengths[i]) {
+      const t = lengths[i] ? remaining / lengths[i] : 0;
+      return vertices[i].map((value, axis) => +(value + (vertices[i+1][axis]-value)*t).toFixed(1));
+    }
+    remaining -= lengths[i];
+  }
+  return vertices[vertices.length-1];
+}
 function floorPlan() {
+  const positions = state.mode === "stepfree" ? [[167,200],[70,135],[45,135],[205,135],[247,92]] : [[167,200],[278,135],[205,135],[247,92]];
+  const position = positions[state.step];
   const prefix = ["G", "A", "B"][state.floor],
     isTarget =
       state.floor ===
@@ -366,11 +386,11 @@ function floorPlan() {
         : dest().floor === "Ground floor"
           ? 0
           : 1);
-  return `<svg class="floorplan" viewBox="0 0 330 250" role="img" aria-label="Demonstration ${["ground", "first", "second"][state.floor]} floor plan showing classrooms, lift, stairs, entrance and ${isTarget ? "destination" : "route continuation"}"><rect x="16" y="20" width="298" height="207" rx="5" fill="white" stroke="#a7b6a8" stroke-width="2"/><path d="M30 113h270v43H30Z M147 35h40v177h-40Z" fill="#edf2e9"/><g fill="#e4eade" stroke="#bcc9b8"><path d="M30 35h105v68H30Z M199 35h101v68H199Z M30 168h105v45H30Z M199 168h101v45H199Z"/></g><g font-family="Arial" font-size="12" fill="#52624e" text-anchor="middle"><text x="80" y="73">${prefix}101</text><text x="248" y="73">${prefix}105</text><text x="80" y="194">${prefix}102</text><text x="248" y="194">${prefix}106</text></g><g stroke="#fff" stroke-width="7"><path d="M80 103h17 M240 103h17 M80 168h17 M240 168h17"/></g><rect x="23" y="119" width="44" height="31" rx="5" fill="#d4e7d8"/><text x="30" y="139" font-size="11" fill="#123d35">Lift ↕</text><rect x="251" y="119" width="54" height="31" rx="5" fill="#e2e5df"/><text x="255" y="139" font-size="10" fill="#39473b">Stairs ${state.mode === "stepfree" ? "×" : "↗"}</text><path d="M167 225 167 135 ${state.mode === "stepfree" && state.step < 3 ? "45 135" : "247 135 247 92"}" fill="none" stroke="white" stroke-width="9"/><path d="M167 225 167 135 ${state.mode === "stepfree" && state.step < 3 ? "45 135" : "247 135 247 92"}" fill="none" stroke="#246B55" stroke-width="5" ${state.mode === "stepfree" ? 'stroke-dasharray="6 4"' : ""}/><circle cx="167" cy="${state.step > 1 ? "135" : "200"}" r="7" fill="#246B55" stroke="white" stroke-width="3"/>${isTarget ? '<circle cx="247" cy="90" r="10" fill="#123D35"/><text x="243" y="94" font-size="12" fill="white">✓</text>' : '<text x="201" y="239" font-size="9" fill="#39473b">Destination on another floor</text>'}<text x="20" y="239" font-size="9" fill="#123d35">${state.floor === 0 ? "Accessible entrance · ramp" : "Lift arrival / stairwell"}</text></svg>`;
+  return `<svg class="floorplan" viewBox="0 0 330 250" role="img" aria-label="Demonstration ${["ground", "first", "second"][state.floor]} floor plan showing classrooms, lift, stairs, entrance and ${isTarget ? "destination" : "route continuation"}"><rect x="16" y="20" width="298" height="207" rx="5" fill="white" stroke="#a7b6a8" stroke-width="2"/><path d="M30 113h270v43H30Z M147 35h40v177h-40Z" fill="#edf2e9"/><g fill="#e4eade" stroke="#bcc9b8"><path d="M30 35h105v68H30Z M199 35h101v68H199Z M30 168h105v45H30Z M199 168h101v45H199Z"/></g><g font-family="Arial" font-size="12" fill="#52624e" text-anchor="middle"><text x="80" y="73">${prefix}101</text><text x="248" y="73">${prefix}105</text><text x="80" y="194">${prefix}102</text><text x="248" y="194">${prefix}106</text></g><g stroke="#fff" stroke-width="7"><path d="M80 103h17 M240 103h17 M80 168h17 M240 168h17"/></g><rect x="23" y="119" width="44" height="31" rx="5" fill="#d4e7d8"/><text x="30" y="139" font-size="11" fill="#123d35">Lift ↕</text><rect x="251" y="119" width="54" height="31" rx="5" fill="#e2e5df"/><text x="255" y="139" font-size="10" fill="#39473b">Stairs ${state.mode === "stepfree" ? "×" : "↗"}</text><path d="M167 225 167 135 ${state.mode === "stepfree" && state.step < 3 ? "45 135" : "247 135 247 92"}" fill="none" stroke="white" stroke-width="9"/><path d="M167 225 167 135 ${state.mode === "stepfree" && state.step < 3 ? "45 135" : "247 135 247 92"}" fill="none" stroke="#246B55" stroke-width="5" ${state.mode === "stepfree" ? 'stroke-dasharray="6 4"' : ""}/><circle data-position="${position.join(',')}" cx="${position[0]}" cy="${position[1]}" r="7" fill="#246B55" stroke="white" stroke-width="3"/>${isTarget ? '<circle cx="247" cy="90" r="10" fill="#123D35"/><text x="243" y="94" font-size="12" fill="white">✓</text>' : '<text x="201" y="239" font-size="9" fill="#39473b">Destination on another floor</text>'}<text x="20" y="239" font-size="9" fill="#123d35">${state.floor === 0 ? "Accessible entrance · ramp" : "Lift arrival / stairwell"}</text></svg>`;
 }
 function indoor() {
   const steps = indoorSteps();
-  return `<div class="page"><span class="badge">${icon(state.mode === "stepfree" ? "access" : "walk")}${state.mode === "stepfree" ? "Step-free route" : "Indoor walking route"}</span><h1 style="margin-top:14px">A little closer.</h1><p class="muted">${dest().building} · ${dest().name}</p><div class="chips" role="group" aria-label="View floor">${["Ground Floor", "First Floor", "Second Floor"].map((f, i) => `<button class="chip ${state.floor === i ? "active" : ""}" data-floor="${i}" aria-pressed="${state.floor === i}">${f}</button>`).join("")}</div>${floorPlan()}<div class="legend"><span>${icon("lift")} Lift</span><span>${icon("stairs")} ${state.mode === "stepfree" ? "Stairs · excluded" : "Stairs"}</span><span>${icon("pin")} ${["Ground", "First", "Second"][state.floor]} floor</span></div><div class="instruction" aria-live="polite">${icon(state.step === steps.length - 1 ? "flag" : state.mode === "stepfree" && state.step === 2 ? "lift" : "turn")}<div><span class="muted">Step ${state.step + 1} of ${steps.length}</span><h3 style="margin-top:5px">${state.step === steps.length - 1 ? "You have arrived" : state.step === 2 ? "Find your way upstairs" : "Your next direction"}</h3><p>${steps[state.step]}</p></div></div><div class="button-row">${state.step ? button("Previous", "prev", "secondary") : ""}${button(state.step === steps.length - 1 ? "Finish journey" : "Next instruction", state.step === steps.length - 1 ? "finish" : "next")}</div>${button("Exit navigation", "exit", "secondary")}${disclaimer}</div>`;
+  return `<div class="page"><span class="badge">${icon(state.mode === "stepfree" ? "access" : "walk")}${state.mode === "stepfree" ? "Step-free route" : "Indoor walking route"}</span><h1 style="margin-top:14px">A little closer.</h1><p class="muted">${dest().building} · ${dest().name}</p><div class="chips" role="group" aria-label="View floor">${["Ground Floor", "First Floor", "Second Floor"].map((f, i) => `<button class="chip ${state.floor === i ? "active" : ""}" data-floor="${i}" aria-pressed="${state.floor === i}">${f}</button>`).join("")}</div>${floorPlan()}<p class="simulation-caption">Simulated movement · Map updates with each instruction</p><div class="legend"><span>${icon("lift")} Lift</span><span>${icon("stairs")} ${state.mode === "stepfree" ? "Stairs · excluded" : "Stairs"}</span><span>${icon("pin")} ${["Ground", "First", "Second"][state.floor]} floor</span></div><div class="instruction" aria-live="polite">${icon(state.step === steps.length - 1 ? "flag" : state.mode === "stepfree" && state.step === 2 ? "lift" : "turn")}<div><span class="muted">Step ${state.step + 1} of ${steps.length}</span><h3 style="margin-top:5px">${state.step === steps.length - 1 ? "You have arrived" : steps[state.step].startsWith("Take the lift") || steps[state.step].startsWith("Use the stairs") ? "Change floors" : "Your next direction"}</h3><p>${steps[state.step]}</p></div></div><div class="button-row">${state.step ? button("Previous", "prev", "secondary") : ""}${button(state.step === steps.length - 1 ? "Finish journey" : "Next instruction", state.step === steps.length - 1 ? "finish" : "next")}</div>${button("Exit navigation", "exit", "secondary")}${disclaimer}</div>`;
 }
 function saved() {
   return `<div class="page"><div class="eyeline">FAMILIAR PLACES, ONE TAP AWAY</div><h1>Your saved places</h1><p class="intro">Less searching. More getting there.</p>${
@@ -396,8 +416,11 @@ function explore() {
 }
 const toggle = (key, label) =>
   `<label class="setting"><span>${label}</span><input type="checkbox" data-setting="${key}" ${state.settings[key] ? "checked" : ""}></label>`;
+function accountScreen(signup = false) {
+  return `<div class="page account-page"><span class="place-icon account-logo">${icon("compass")}</span><div class="eyeline">FIND YOUR WAY. YOUR WAY.</div><h1>${signup ? "Your campus journey starts here." : "Welcome back."}</h1><p class="intro">${signup ? "Create your demonstration profile and make campus feel familiar." : "A familiar route. A new possibility. Let’s get you there."}</p><div class="account-tabs"><button data-action="login" aria-pressed="${!signup}">Log in</button><button data-action="signup" aria-pressed="${signup}">Sign up</button></div><form id="account-form" data-signup="${signup}">${signup ? '<label class="form-field">Your name<input name="name" autocomplete="nickname" required maxlength="60" placeholder="Alex Murphy"></label>' : ''}<label class="form-field">Email address<input name="email" type="email" autocomplete="off" required placeholder="you@example.com"></label><label class="form-field">Demo password<span class="password-field"><input aria-label="Demo password" name="password" type="password" autocomplete="off" required minlength="8" placeholder="At least 8 characters"><button type="button" data-action="show-password" aria-label="Show password">Show</button></span></label>${signup ? '<label class="form-field">Confirm demo password<input name="confirm" type="password" autocomplete="off" required minlength="8" placeholder="Repeat your demo password"></label>' : ''}<p id="form-error" role="alert" class="form-error"></p><button class="primary" type="submit">${signup ? "Create demo profile" : "Log in to demo"}${icon("arrow")}</button></form><div class="notice">Prototype only. Use made-up details. No account is created, no credentials are verified, and passwords are never saved or sent.</div>${button("Continue as guest", "guest", "secondary")}</div>`;
+}
 function profile() {
-  return `<div class="page"><div class="profile-card"><span class="avatar" style="display:grid;place-content:center">${icon("user")}</span><div><h2>Make it your way</h2><p class="muted">Your preferences, on this device.</p></div></div><h2>Navigation preferences</h2><div class="setting-group"><label class="setting">Preferred travel mode<select data-setting="preferred" aria-label="Preferred travel mode">${Object.entries(
+  return `<div class="page"><div class="profile-card"><span class="avatar" style="display:grid;place-content:center">${icon("user")}</span><div><h2>${state.demoUser ? "Hello, " + escape(state.demoUser) : "Make it your way"}</h2><p class="muted">Your preferences, on this device.</p></div></div>${button(state.demoUser ? "Log out of demo" : "Log in / Sign up", state.demoUser ? "logout" : "login", "secondary", "user")}<h2 style="margin-top:24px">Navigation preferences</h2><div class="setting-group"><label class="setting">Preferred travel mode<select data-setting="preferred" aria-label="Preferred travel mode">${Object.entries(
     modes,
   )
     .map(
@@ -416,6 +439,8 @@ function render() {
   document.body.classList.toggle("clear-labels", state.settings.labels);
   const root = ["home", "explore", "saved", "profile"].includes(state.screen);
   const titles = {
+    login: "NavigateUCD",
+    signup: "NavigateUCD",
     search: "Find a destination",
     details: "Destination",
     preferences: "Route preferences",
@@ -429,6 +454,8 @@ function render() {
     ? `<div class="logo">${icon("compass")}<span>Navigate<span>UCD</span></span></div><button class="avatar" data-action="profile" aria-label="Open profile">${icon("user")}</button>`
     : `<button class="icon-button" data-action="back" aria-label="Go back">${icon("back")}</button><span class="header-title">${titles[state.screen]}</span><span style="width:44px"></span>`;
   const views = {
+    login: () => accountScreen(false),
+    signup: () => accountScreen(true),
     home,
     search,
     details,
@@ -523,6 +550,20 @@ document.addEventListener("click", (event) => {
   }
   const a = d.action;
   if (!a) return;
+  if (a === "show-password") {
+    const input = document.querySelector('[name="password"]');
+    const show = input.type === "password";
+    input.type = show ? "text" : "password";
+    el.textContent = show ? "Hide" : "Show";
+    el.setAttribute("aria-label", show ? "Hide password" : "Show password");
+    return;
+  }
+  if (a === "guest" || a === "logout") {
+    state.demoUser = null;
+    state.history = [];
+    state.screen = a === "logout" ? "login" : "home";
+    render(); main.focus(); return;
+  }
   if (a === "back") {
     back();
     return;
@@ -540,8 +581,8 @@ document.addEventListener("click", (event) => {
   }
   if (a === "next" || a === "prev") {
     state.step += a === "next" ? 1 : -1;
-    if (state.step === 0) state.floor = 0;
-    else if (state.step >= (state.mode === "stepfree" ? 2 : 1))
+    if (state.step < (state.mode === "stepfree" ? 2 : 1)) state.floor = 0;
+    else
       state.floor =
         dest().floor === "Second floor"
           ? 2
@@ -634,4 +675,22 @@ document.addEventListener("keydown", (event) => {
     keys[(keys.indexOf(state.mode) + offset + keys.length) % keys.length];
   render();
   document.querySelector(`[data-mode="${state.mode}"]`).focus();
+});
+
+// UI-only account flow: credentials never enter persistent state or a network request.
+document.addEventListener("submit", event => {
+  if (event.target.id !== "account-form") return;
+  event.preventDefault();
+  const form = event.target;
+  const signup = form.dataset.signup === "true";
+  if (signup && form.elements.password.value !== form.elements.confirm.value) {
+    document.querySelector("#form-error").textContent = "Your demo passwords do not match.";
+    form.elements.confirm.setAttribute("aria-invalid", "true");
+    form.elements.confirm.focus(); return;
+  }
+  const name = signup ? form.elements.name.value.trim() : "Explorer";
+  if (!name) { document.querySelector("#form-error").textContent = "Please enter a name."; return; }
+  state.demoUser = name;
+  form.reset(); state.history = []; state.screen = "home";
+  render(); main.focus(); toast(signup ? "Demo profile created for this session" : "Welcome to the demo");
 });
